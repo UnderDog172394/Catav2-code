@@ -36,3 +36,29 @@ int TurnMov(double speed){
  R3.spin(forward, -speed, voltageUnits::volt);
   return 1;
 }
+
+int RollerVertMov(){
+ L1.spin(forward, 4, voltageUnits::volt);
+ L2.spin(forward, 4, voltageUnits::volt);
+ L3.spin(forward, 4, voltageUnits::volt);
+ R1.spin(forward, 4, voltageUnits::volt);
+ R2.spin(forward, 4, voltageUnits::volt);
+ R3.spin(forward, 4, voltageUnits::volt);
+  return 1;
+}
+
+
+
+int autoroller(){
+roller.setLightPower(50, pct);
+task myTask = task(RollerVertMov);
+Intake.spin(forward, 12, voltageUnits::volt);
+if(roller.color() == red){
+wait(1, sec);
+Intake.stop();
+}
+
+
+
+return 1;
+}

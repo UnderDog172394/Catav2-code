@@ -25,6 +25,7 @@
 // Cata                 motor         8               
 // CataArm              rotation      9               
 // Intake               motor         11              
+// roller               optical       12              
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
@@ -36,6 +37,36 @@ using namespace vex;
 
 // A global instance of competition
 competition Competition;
+
+int DesiredAng(int angle) {
+ double CheckL;
+ 
+ if(angle > OdomHeading) {
+   CheckL = std::abs(angle - OdomHeading);
+  } else{
+   CheckL = (360-OdomHeading)+angle;
+  }
+ 
+ double CheckR;
+
+  if(angle > OdomHeading) {
+   CheckR = (360-angle)+OdomHeading;
+  } else{
+   CheckR = (OdomHeading - angle);
+  }
+
+  double Heading;
+  if(CheckL > std::abs(CheckR)) {
+   Heading = CheckR;
+    } else {
+   Heading = -CheckL;
+  }
+  
+  
+  //std::cout << "     Left Turn is " << CheckL;
+  //std::cout << "     Right Turn is " << CheckR;
+  return Heading;
+}
 
 double kP = 14;
 double kD = 0;
@@ -52,7 +83,7 @@ double turnerror;
 double turnprevError; //Position 20 miliseconds ago
 double turnderivative; // error - prevError : Speed
 double totalturnError = 0;
-
+double direction;
 
 
 int YPID(int desy){
@@ -99,17 +130,27 @@ int XPID(int desy){
 
 int turnPID(int desy){
   while(true){
-    turnerror = OdomHeading - desy;
-    turnderivative = turnerror - turnprevError;
-    totalturnError += turnerror;
-    double TurnSpeed = (-turnerror * turnkP) + (-derivative * turnkD) + (-totalturnError * turnkI) ;
-     
-    TurnMov(clamp(TurnSpeed, -5, 5));
-  
-    if(InRange(TurnSpeed, -0.6, 0.6)){
+    //turnerror = OdomHeading - desy;
+    double new_error =DesiredAng(desy);
+    std::cout << new_error << std::endl;
+    int TurnSpeed = 0;
+    if(InRange(new_error, 100, 360) == 1){
+    TurnSpeed = 12;
+    }
+    if(InRange(new_error, 50, 100) == 1){
+    TurnSpeed = 4;
+    }
+    if(InRange(new_error, 1, 50) == 1){
+    TurnSpeed = 1;
+    }
+    if(InRange(new_error, 0, 1) == 1){
+    TurnSpeed = 0;
+    }
+    TurnMov(TurnSpeed);
+    if(TurnSpeed == 0){
       break;
     }
-
+   
   }
   L1.stop(hold);
   L2.stop(hold);
