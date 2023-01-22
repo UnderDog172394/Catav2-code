@@ -92,14 +92,18 @@ bool CataPos (int x) {
 
 void Catapult(){
   if(Controller1.ButtonA.pressing()){
-      Cata.spin(forward, 12, voltageUnits::volt);
-
-    } else if(CataArm.angle() >= 58 ){
-      Cata.stop(hold);
-     } else {
+    Cata.spin(forward, 12, voltageUnits::volt);
+  } else {
+    if(CataArm.position(degrees) > 62.5 && (Controller1.ButtonA.pressing() == 0)){
+      Cata.stop(brake);
+    } else {
       Cata.spin(forward, 12, voltageUnits::volt);
     }
-  
+  }
+  if(Controller1.ButtonB.pressing()){
+    Cata.stop();
+  }
+  std::cout << CataArm.position(degrees) << std::endl;
 }
 
 void Intaker(){

@@ -38,7 +38,7 @@ using namespace vex;
 // A global instance of competition
 competition Competition;
 
-int DesiredAng(int angle) {
+double DesiredAng(int angle) {
  double CheckL;
  
  if(angle > OdomHeading) {
@@ -68,7 +68,7 @@ int DesiredAng(int angle) {
   return Heading;
 }
 
-double kP = 14;
+double kP = 8;
 double kD = 0;
 
 double turnkP = .25;
@@ -83,10 +83,10 @@ double turnerror;
 double turnprevError; //Position 20 miliseconds ago
 double turnderivative; // error - prevError : Speed
 double totalturnError = 0;
-double direction;
+double reversal;
 
 
-int YPID(int desy){
+int YPID(double desy){
   while(true){
     error = YPos - desy;
 
@@ -131,26 +131,45 @@ int XPID(int desy){
 int turnPID(int desy){
   while(true){
     //turnerror = OdomHeading - desy;
-    double new_error =DesiredAng(desy);
+    double new_error =(DesiredAng(desy)); 
+    /*if (new_error < 1){
+      reversal = -1;
+    } else {
+      reversal = 1;
+    }
+    */
+    double abs_error = std::abs(new_error);
     std::cout << new_error << std::endl;
-    int TurnSpeed = 0;
-    if(InRange(new_error, 100, 360) == 1){
-    TurnSpeed = 12;
+    double TurnSpeed = 0;
+    if(InRange(abs_error, 100, 360) == 1){
+    TurnSpeed = 10;
     }
-    if(InRange(new_error, 50, 100) == 1){
-    TurnSpeed = 4;
+    if(InRange(abs_error, 50, 100) == 1){
+    TurnSpeed = 6;
     }
-    if(InRange(new_error, 1, 50) == 1){
-    TurnSpeed = 1;
+    if(InRange(abs_error, 10, 50) == 1){
+    TurnSpeed = 3;
     }
+    if(InRange(abs_error, 1, 10) == 1){
+    TurnSpeed = 2.45;
+    }
+    //std::cout << TurnSpeed << std::endl;
+    //std::cout << reversal << std::endl;
     if(InRange(new_error, 0, 1) == 1){
     TurnSpeed = 0;
+    L1.stop(hold);
+    L2.stop(hold);
+    L3.stop(hold);
+    R1.stop(hold);
+    R2.stop(hold);
+    R3.stop(hold);
     }
     TurnMov(TurnSpeed);
+    /*
     if(TurnSpeed == 0){
       break;
     }
-   
+   */
   }
   L1.stop(hold);
   L2.stop(hold);
@@ -164,9 +183,9 @@ int turnPID(int desy){
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  LTrack.resetPosition();
-  RTrack.resetPosition();
-  CataArm.resetPosition();
+  LTrack.setPosition(0, degrees);
+  RTrack.setPosition(0, degrees);
+  CataArm.setPosition(0, degrees);
   X = 0;
   Y = 0;
 
@@ -187,7 +206,7 @@ void pre_auton(void) {
 void autonomous(void) {
  vex::task Odometry (TrackPOS);
  wait(3, sec);
- YPID(1);
+ turnPID(180);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -27,7 +27,7 @@ int VertMov(double speed){
  R3.spin(forward, speed, voltageUnits::volt);
   return 1;
 }
-int TurnMov(double speed){
+double TurnMov(double speed){
  L1.spin(forward, speed, voltageUnits::volt);
  L2.spin(forward, speed, voltageUnits::volt);
  L3.spin(forward, speed, voltageUnits::volt);

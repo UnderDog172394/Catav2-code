@@ -74,7 +74,7 @@ int TrackPOS() {
     Brain.Screen.setPenColor( vex::color( 22, 100, 8 ) );
     Brain.Screen.printAt(40,110 + textadjustvalue, "Angle:%f",OdomHeading);
     vex::task::sleep(10);
-    std::cout << OdomHeading << std::endl;
+    //std::cout << OdomHeading << std::endl;
   }
   return 1;
 }
