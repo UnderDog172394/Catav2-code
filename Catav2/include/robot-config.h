@@ -19,6 +19,8 @@ extern motor Cata;
 extern rotation CataArm;
 extern motor Intake;
 extern optical roller;
+extern digital_out Right;
+extern digital_out Left;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

@@ -24,6 +24,8 @@ motor Cata = motor(PORT8, ratio36_1, true);
 rotation CataArm = rotation(PORT9, false);
 motor Intake = motor(PORT11, ratio18_1, false);
 optical roller = optical(PORT12);
+digital_out Right = digital_out(Brain.ThreeWirePort.E);
+digital_out Left = digital_out(Brain.ThreeWirePort.F);
 
 // VEXcode generated functions
 // define variable for remote controller enable/disable

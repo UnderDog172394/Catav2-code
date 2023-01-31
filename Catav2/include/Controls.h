@@ -94,8 +94,8 @@ void Catapult(){
   if(Controller1.ButtonA.pressing()){
     Cata.spin(forward, 12, voltageUnits::volt);
   } else {
-    if(CataArm.position(degrees) > 62.5 && (Controller1.ButtonA.pressing() == 0)){
-      Cata.stop(brake);
+    if(CataArm.position(degrees) > 64 && (Controller1.ButtonA.pressing() == 0)){
+      Cata.stop(hold);
     } else {
       Cata.spin(forward, 12, voltageUnits::volt);
     }
@@ -114,7 +114,11 @@ if(Controller1.ButtonR1.pressing()){
     } else {
       Intake.stop();
     }
+}
 
-    
-       
+void Endgame(){
+if(Controller1.ButtonR2.pressing() && Controller1.ButtonL2.pressing() == 1){
+  Left = 1;
+  Right = 1;
+}
 }

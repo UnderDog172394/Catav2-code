@@ -18,7 +18,7 @@ bool InRange (double x, double lower, double upper) {
   return (x >= lower && x < upper);
 }
 
-int VertMov(double speed){
+double VertMov(double speed){
  L1.spin(forward, speed, voltageUnits::volt);
  L2.spin(forward, speed, voltageUnits::volt);
  L3.spin(forward, speed, voltageUnits::volt);
@@ -27,6 +27,21 @@ int VertMov(double speed){
  R3.spin(forward, speed, voltageUnits::volt);
   return 1;
 }
+
+double LeftMov(double speed){
+ L1.spin(forward, speed, voltageUnits::volt);
+ L2.spin(forward, speed, voltageUnits::volt);
+ L3.spin(forward, speed, voltageUnits::volt);
+ return 1;
+}
+
+double RightMov(double speed){
+ R1.spin(forward, speed, voltageUnits::volt);
+ R2.spin(forward, speed, voltageUnits::volt);
+ R3.spin(forward, speed, voltageUnits::volt);
+ return 1;
+}
+
 double TurnMov(double speed){
  L1.spin(forward, speed, voltageUnits::volt);
  L2.spin(forward, speed, voltageUnits::volt);
@@ -47,18 +62,74 @@ int RollerVertMov(){
   return 1;
 }
 
-
+int RollerStop(){
+ L1.stop();
+ L2.stop();
+ L3.stop();
+ R1.stop();;
+ R2.stop();
+ R3.stop();
+  return 1;
+}
 
 int autoroller(){
 roller.setLightPower(50, pct);
-task myTask = task(RollerVertMov);
+RollerVertMov();
 Intake.spin(forward, 12, voltageUnits::volt);
 if(roller.color() == red){
 wait(1, sec);
 Intake.stop();
+RollerStop();
+}
+return 1;
 }
 
 
 
-return 1;
+int CataSet(){
+  while((CataArm.position(degrees) < 64) == 1){
+    Cata.spin(forward, 12, voltageUnits::volt);
+    std::cout << CataArm.position(degrees) << std::endl;
+  }
+  Cata.stop();
+  return 1;
+}
+
+int CataFire(){
+  Cata.spin(forward, 12, voltageUnits::volt);
+  wait(.5, sec);
+  Cata.stop();
+  return 1;
+}
+
+int StartInt(){
+  Intake.spin(forward, -12, voltageUnits::volt);
+  return 1;
+}
+
+int StopInt(){
+  Intake.stop();
+  return 1;
+}
+
+int sgn2(double input) {
+  if (input > 0)
+    return 1;
+  else if (input < 0)
+    return -1;
+  return 0;
+}
+
+int boostON(){
+
+
+
+  return 1;
+}
+
+int boostOFF(){
+
+
+
+  return 1;
 }

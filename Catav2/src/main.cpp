@@ -26,6 +26,8 @@
 // CataArm              rotation      9               
 // Intake               motor         11              
 // roller               optical       12              
+// Right                digital_out   E               
+// Left                 digital_out   F               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
@@ -37,6 +39,8 @@ using namespace vex;
 
 // A global instance of competition
 competition Competition;
+
+double conv = Pi/180;
 
 double DesiredAng(int angle) {
  double CheckL;
@@ -67,79 +71,43 @@ double DesiredAng(int angle) {
   //std::cout << "     Right Turn is " << CheckR;
   return Heading;
 }
+//turnPID
+double turnkp = .17;
+double turnki = 0.193;
+double turnkd = .0001;
 
-double kP = 8;
-double kD = 0;
+double turnerror = 0;
+double turnderivative = 0;
+double turnintegral = 0;
 
-double turnkP = .25;
-double turnkD = 0;
-double turnkI = 0;
-double desy;
-double error; 
-double prevError = 0; //Position 20 miliseconds ago
-double derivative; // error - prevError : Speed
+double preverror = 0;
 
-double turnerror; 
-double turnprevError; //Position 20 miliseconds ago
-double turnderivative; // error - prevError : Speed
-double totalturnError = 0;
-double reversal;
-
-
-int YPID(double desy){
+double turnPID(int desy){
   while(true){
-    error = YPos - desy;
+    turnerror = -(DesiredAng(desy));
+    std::cout << turnerror << std::endl;
+    turnderivative = turnerror - preverror;
 
-    double VertSpeed = (error * kP) + (derivative * kD);
-    VertMov(VertSpeed);
-  
-    if(InRange(VertSpeed, -0.5, 0.5)){
+    if (turnki != 0) {
+      if (std::fabs(turnerror) < turnki){
+        turnintegral += turnerror;
+      }
+      if(sgn2(turnerror) != sgn2(preverror))
+      turnintegral = 0;
+    }  
+
+    double TurnSpeed = (turnerror * turnkp) + (turnintegral * turnki) + (turnderivative * preverror);
+
+    TurnMov(TurnSpeed);
+    /*
+    if(InRange(TurnSpeed, -0.5, 0.5)){
       break;
     }
-
-  }
-  L1.stop(hold);
-  L2.stop(hold);
-  L3.stop(hold);
-  R1.stop(hold);
-  R2.stop(hold);
-  R3.stop(hold);
-  return 1;
-}
-
-int XPID(int desy){
-  while(true){
-    error = XPos - desy;
-
-    double VertSpeed = (error * kP) + (derivative * kD);
-    VertMov(VertSpeed);
-  
-    if(InRange(VertSpeed, -0.5, 0.5)){
-      break;
-    }
-
-  }
-  L1.stop(hold);
-  L2.stop(hold);
-  L3.stop(hold);
-  R1.stop(hold);
-  R2.stop(hold);
-  R3.stop(hold);
-  return 1;
-}
-
-int turnPID(int desy){
-  while(true){
-    //turnerror = OdomHeading - desy;
+    
     double new_error =(DesiredAng(desy)); 
-    /*if (new_error < 1){
-      reversal = -1;
-    } else {
-      reversal = 1;
-    }
-    */
+    
     double abs_error = std::abs(new_error);
-    std::cout << new_error << std::endl;
+    
     double TurnSpeed = 0;
     if(InRange(abs_error, 100, 360) == 1){
     TurnSpeed = 10;
@@ -147,10 +115,10 @@ int turnPID(int desy){
     if(InRange(abs_error, 50, 100) == 1){
     TurnSpeed = 6;
     }
-    if(InRange(abs_error, 10, 50) == 1){
+    if(InRange(abs_error, 25, 50) == 1){
     TurnSpeed = 3;
     }
-    if(InRange(abs_error, 1, 10) == 1){
+    if(InRange(abs_error, 1, 25) == 1){
     TurnSpeed = 2.45;
     }
     //std::cout << TurnSpeed << std::endl;
@@ -165,11 +133,15 @@ int turnPID(int desy){
     R3.stop(hold);
     }
     TurnMov(TurnSpeed);
-    /*
+    
     if(TurnSpeed == 0){
       break;
     }
+   
    */
+    
+   preverror = turnerror;
+   //wait(10, msec);
   }
   L1.stop(hold);
   L2.stop(hold);
@@ -177,6 +149,165 @@ int turnPID(int desy){
   R1.stop(hold);
   R2.stop(hold);
   R3.stop(hold);
+  
+  return 1;
+}
+
+double CorrectionSpeed = 0;
+
+int CorrectionPID(int desy){
+  while(true){
+    turnerror = DesiredAng(desy);
+
+    turnderivative = turnerror - preverror;
+
+    if (turnki != 0) {
+      if (std::fabs(turnerror) < turnki){
+        turnintegral += turnerror;
+      }
+      if(sgn2(turnerror) != sgn2(preverror))
+      turnintegral = 0;
+    }  
+
+    CorrectionSpeed = (turnerror * turnkp) + (turnintegral * turnki) + (turnderivative * preverror);
+    
+  
+    /*
+    double new_error =(DesiredAng(desy)); 
+    
+    double abs_error = std::abs(new_error);
+    
+    double TurnSpeed = 0;
+    if(InRange(abs_error, 100, 360) == 1){
+    TurnSpeed = 10;
+    }
+    if(InRange(abs_error, 50, 100) == 1){
+    TurnSpeed = 6;
+    }
+    if(InRange(abs_error, 25, 50) == 1){
+    TurnSpeed = 3;
+    }
+    if(InRange(abs_error, 1, 25) == 1){
+    TurnSpeed = 2.45;
+    }
+    //std::cout << TurnSpeed << std::endl;
+    //std::cout << reversal << std::endl;
+    if(InRange(new_error, 0, 1) == 1){
+    TurnSpeed = 0;
+    L1.stop(hold);
+    L2.stop(hold);
+    L3.stop(hold);
+    R1.stop(hold);
+    R2.stop(hold);
+    R3.stop(hold);
+    }
+    TurnMov(TurnSpeed);
+    
+    if(TurnSpeed == 0){
+      break;
+    }
+   
+   */
+    
+   preverror = turnerror;
+   wait(10, msec);
+  }
+  return 1;
+}
+
+double kP = 7.7;
+double kD = 0;
+
+double desy;
+double error; 
+double prevError = 0; //Position 20 miliseconds ago
+double derivative; // error - prevError : Speed
+
+double reversal;
+
+
+int YPID(double desy){
+  double Correction = OdomHeading;
+  while(true){
+    error = YPos - desy;
+    
+    derivative = error - prevError;
+
+    double VertSpeed = (error * kP) + (derivative * kD);
+
+    turnPID(Correction);
+
+    LeftMov(VertSpeed + CorrectionSpeed);
+
+    RightMov(VertSpeed - CorrectionSpeed);
+
+
+    //VertMov(VertSpeed);
+  
+    if(InRange(VertSpeed, -0.5, 0.5)){
+     break;
+    }
+
+    prevError = error;
+    wait(10, msec);  
+  }
+  L1.stop(hold);
+  L2.stop(hold);
+  L3.stop(hold);
+  R1.stop(hold);
+  R2.stop(hold);
+  R3.stop(hold);
+  return 1;
+}
+
+int XPID(int desy){
+  while(true){
+    error = XPos - desy;
+    
+    derivative = error - prevError;
+
+    double VertSpeed = (error * kP) + (derivative * kD);
+    VertMov(VertSpeed);
+  
+    if(InRange(VertSpeed, -0.5, 0.5)){
+     break;
+    }
+
+    prevError = error;
+    wait(10, msec); 
+  }
+  L1.stop(hold);
+  L2.stop(hold);
+  L3.stop(hold);
+  R1.stop(hold);
+  R2.stop(hold);
+  R3.stop(hold);
+  return 1;
+}
+
+int ForwardPID(double desl){
+    double HRad = OdomHeading*conv;
+    double desy = (desl*cos(HRad));
+    double desx = (desl*sin(HRad));
+    std::cout << desy << std::endl;
+    std::cout << desx << std::endl;
+    if (std::abs(desy) >= std::abs(desx)){
+      //std::cout << "running y" << std::endl;
+       YPID(desy);
+    } 
+    if (std::abs(desx) > std::abs(desy)) {
+      //std::cout << "running x" << std::endl;
+       XPID(desx);
+    }
+ return 1;   
+}
+
+
+
+int RESET(double seconds){
+  X = 0;
+  Y = 0;
+  wait(seconds, sec);
   return 1;
 }
 
@@ -205,8 +336,19 @@ void pre_auton(void) {
 
 void autonomous(void) {
  vex::task Odometry (TrackPOS);
+ /*
  wait(3, sec);
- turnPID(180);
+ autoroller();
+ wait(2, sec);
+ ForwardPID(2);
+ wait(2, sec);
+ turnPID(270);
+ RESET(2);
+ ForwardPID(-1);
+ wait(2, sec);
+ autoroller();
+ */
+ turnPID(10);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -225,6 +367,7 @@ void usercontrol(void) {
     Drive();
     Catapult();
     Intaker();
+    Endgame();
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
   }
